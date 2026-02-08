@@ -1,0 +1,74 @@
+@model SafeVault.Models.LoginViewModel
+
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="container mt-5" style="max-width: 450px;">
+    <h2 class="text-center mb-4">Login</h2>
+
+    <form id="loginForm" asp-action="Login" method="post">
+        @Html.AntiForgeryToken()
+
+        <!-- Username -->
+        <div class="mb-3">
+            <label asp-for="Username" class="form-label"></label>
+            <input asp-for="Username" class="form-control" />
+            <span asp-validation-for="Username" class="text-danger"></span>
+        </div>
+
+        <!-- Password -->
+        <div class="mb-3">
+            <label asp-for="Password" class="form-label"></label>
+            <input asp-for="Password" type="password" class="form-control" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+
+        <!-- General error -->
+        <div>
+            @if (!ViewData.ModelState.IsValid && ViewData.ModelState[""]?.Errors.Count > 0)
+            {
+                <div class="alert alert-danger">
+                    @ViewData.ModelState[""].Errors[0].ErrorMessage
+                </div>
+            }
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="btn btn-primary w-100">Login</button>
+
+        <div class="text-center mt-3">
+            <a asp-action="Register">Don't have an account? Register</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const form = e.target;
+            const formData = new FormData(form);
+
+            const response = await fetch("/Auth/Login", {
+                method: "POST",
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Store JWT in a cookie
+                document.cookie = "jwt=" + result.token + "; path=/;";
+
+                // Redirect to dashboard
+                window.location.href = "/Dashboard";
+            } else {
+                alert("Login failed");
+            }
+        });
+    </script>
+}
